@@ -301,12 +301,9 @@ Request.prototype.parseMiddleware = function (response) {
         response.body = {status:"ok",start:loaded[1],end:loaded[2],total:loaded[3]};
         return response;
     }
-    try {
-        response.body = JSONbig.parse(response.body);
-        return response;
-    } catch (err) {
-        throw new Exceptions.ParseError(response, this);
-    }
+    
+    response.body = JSON.parse(response.body);
+    return response
 };
 
 

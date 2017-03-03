@@ -13,24 +13,25 @@ module.exports = SavedFeed;
 var Media = require('../media');
 var Request = require('../request');
 
-SavedFeed.prototype.get = function () {
+SavedFeed.prototype.get = function (maxId) {
     var that = this;
 
     return new Request(that.session)
       .setMethod('POST')
-      .setResource('savedFeed')
+      .setResource('savedFeed', {
+            maxId: that.getCursor()
+        })
       .generateUUID()
       .setData({})
       .signPayload()
       .send()
       .then(function(data) {
-        that.moreAvailable = data.more_available;
-        var lastOne = _.last(data.items);
-        if (that.moreAvailable && lastOne) {
-            that.setCursor(lastOne.id);
-        }
-        return _.map(data.items, function (medium) {
-            return new Media(that.session, medium.media);
-        });
+            var nextMaxId = data.next_max_id ? data.next_max_id.toString() : data.next_max_id;
+            that.moreAvailable = data.more_available && !!nextMaxId;
+            if (that.moreAvailable)
+                that.setCursor(nextMaxId);
+
+            console.log(data);
+            return data.items;
       })
 };
